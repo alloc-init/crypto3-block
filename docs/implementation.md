@@ -25,15 +25,15 @@ Block cipher library architecture consists of several parts listed below:
 
 @dot
 digraph block_cipher_arch {
-bgcolor="#222222"
+bgcolor="#151515"
 rankdir="TB"
 node [shape="box"]
 
-  a [label="Algorithms" color="#F5F2F1" fontcolor="#F5F2F1" URL="@ref block_cipher_algorithms"];
-  b [label="Stream Processors" color="#F5F2F1" fontcolor="#F5F2F1" URL="@ref block_cipher_stream"];
-  c [label="Cipher Algorithms" color="#F5F2F1" fontcolor="#F5F2F1" URL="@ref block_cipher_policies"];
-  d [label="Accumulators" color="#F5F2F1" fontcolor="#F5F2F1" URL="@ref block_cipher_accumulators"];
-  e [label="Value Processors" color="#F5F2F1" fontcolor="#F5F2F1" URL="@ref block_cipher_value"];
+  a [label="Algorithms" color="#f5f2f1" fontcolor="#f5f2f1" fontname="helvetica" URL="@ref block_cipher_algorithms"];
+  b [label="Stream Processors" color="#f5f2f1" fontcolor="#f5f2f1" fontname="helvetica" URL="@ref block_cipher_stream"];
+  c [label="Cipher Algorithms" color="#f5f2f1" fontcolor="#f5f2f1" fontname="helvetica" URL="@ref block_cipher_policies"];
+  d [label="Accumulators" color="#f5f2f1" fontcolor="#f5f2f1" fontname="helvetica" URL="@ref block_cipher_accumulators"];
+  e [label="Value Processors" color="#f5f2f1" fontcolor="#f5f2f1" fontname="helvetica" URL="@ref block_cipher_value"];
   
   a -> b;
   b -> c;
@@ -122,8 +122,8 @@ Example. Lets assume input data stream consists of 16 bytes as follows.
 
 @dot
 digraph bytes {
-bgcolor="#222222";
-node [shape=record color="#F5F2F1" fontcolor="#F5F2F1"];
+bgcolor="#151515"
+node [shape=record color="#f5f2f1" fontcolor="#f5f2f1" fontname="helvetica"];
 
 struct1 [label="0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07 | 0x08 | 0x09 | 0x10 | 0x11 | 0x12 | 0x13
  | 0x14 | 0x15"];
@@ -137,8 +137,8 @@ be converted to 32 bit words and merged to 128 bit blocks as follows:
   
 @dot
 digraph bytes_to_words {
-bgcolor="#222222";
-node [shape=record color="#F5F2F1" fontcolor="#F5F2F1"];
+bgcolor="#151515"
+node [shape=record color="#f5f2f1" fontcolor="#f5f2f1" fontname="helvetica"];
 
 struct1 [label="<b0> 0x00 |<b1> 0x01 |<b2> 0x02 |<b3> 0x03 |<b4> 0x04 |<b5> 0x05 |<b6> 0x06 |<b7> 0x07 |<b8> 0x08 |<b9> 0x09 |<b10> 0x10 |<b11> 0x11 |<b12> 0x12 |<b13> 0x13 |<b14> 0x14 |<b15> 0x15"];
 
@@ -279,9 +279,9 @@ Encryption contains an accumulation step, which is implemented with
 
 All the concepts are held.
 
-Block ciphers contains pre-defined [`block::accumulator_set`](@ref block::accumulator_set), 
+Block ciphers contains pre-defined [`block::accumulator_set`](@ref nil::crypto3::block::accumulator_set), 
 which is a `boost::accumulator_set` with pre-filled 
-[`block` accumulator](@ref accumulators::block).
+[`block` accumulator](@ref nil::crypto3::accumulators::block).
 
 Block accumulator accepts only one either `block_type::value_type` or `block_type` 
 at insert.
@@ -298,7 +298,7 @@ combined with other accumulators available for
  
 Example. Let's assume there is an accumulator set, which intention is to encrypt 
 all the incoming data with [`rijndael<128, 128>` cipher](@ref block::rijndael)
-and to compute a [`sha2<256>` hash](@ref hash::sha2) of all the incoming data
+and to compute a [`sha2<256>` hashes](@ref hashes::sha2) of all the incoming data
 as well.
 
 This means there will be an accumulator set defined as follows:
@@ -308,12 +308,12 @@ using namespace nil::crypto3;
 
 boost::accumulator_set<
     accumulators::block<block::rijndael<128, 128>>,
-    accumulators::hash<hash::sha2<256>>> acc;
+    accumulators::hash<hashes::sha2<256>>> acc;
 ```
 
 Extraction is supposed to be defined as follows:
 ```cpp
-std::string hash = extract::hash<hash::sha2<256>>(acc);
+std::string hash = extract::hash<hashes::sha2<256>>(acc);
 std::string ciphertext = extract::block<block::rijndael<128, 128>>(acc);
 ```
 
@@ -333,3 +333,4 @@ Such a state holder is split to a couple of types:
 Actually stores the `AccumulatorSet` with digest data.
 2. Reference holder. Intended to store a reference to external `AccumulatorSet`, 
 which is usable in case of data gets appended to existing accumulator.
+

@@ -2,9 +2,25 @@
 // Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
 // Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
 //
-// Distributed under the Boost Software License, Version 1.0
-// See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_BLOCK_SHACAL2_HPP
@@ -27,7 +43,7 @@ namespace nil {
 
             /*!
              * @brief Shacal2. Merkle-Damgård construction foundation for
-             * @ref nil::crypto3::hash::sha2 "SHA2" hashes. Accepts
+             * @ref nil::crypto3::hashes::sha2 "SHA2" hashes. Accepts
              * up to a 512-bit key. Fast and seemingly very secure, but obscure.
              * Standardized by NESSIE.
              *
@@ -109,13 +125,6 @@ namespace nil {
                 }
 
                 static void prepare_schedule(key_schedule_type &schedule) {
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                    for (unsigned t = 0; t < key_words; ++t) {
-                        std::printf(word_bits == 32 ? "WordBits[%2d] = %.8x\n" : "WordBits[%2d] = %.16lx\n", t,
-                                    round_constants_words[t]);
-                    }
-#endif
-
                     for (unsigned t = key_words; t < rounds; ++t) {
                         schedule[t] = policy_type::sigma_1(schedule[t - 2]) + schedule[t - 7] +
                                       policy_type::sigma_0(schedule[t - 15]) + schedule[t - 16];
@@ -127,12 +136,6 @@ namespace nil {
                 }
 
                 inline static block_type encrypt_block(const key_schedule_type &schedule, block_type const &plaintext) {
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                    for (unsigned t = 0; t < block_words; ++t) {
-                        std::printf(word_bits == 32 ? "H[%d] = %.8x\n" : "H[%d] = %.16lx\n", t, plaintext[t]);
-                    }
-#endif
 
                     // Initialize working variables with block
                     word_type a = plaintext[0], b = plaintext[1], c = plaintext[2], d = plaintext[3], e = plaintext[4],
@@ -154,14 +157,6 @@ namespace nil {
                         c = b;
                         b = a;
                         a = T1 + T2;
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        std::printf(word_bits == 32 ? "t = %2d: %.8x %.8x %.8x %.8x"
-                                                      " %.8x %.8x %.8x %.8x\n" :
-                                                      "t = %2d: %.16lx %.16lx %.16lx %.16lx"
-                                                      " %.16lx %.16lx %.16lx %.16lx\n",
-                                    t, a, b, c, d, e, f, g, h);
-#endif
                     }
 
 #else    // CRYPTO3_BLOCK_NO_OPTIMIZATION
@@ -181,14 +176,6 @@ namespace nil {
                             c = b;
                             b = a;
                             a = T1 + T2;
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                            std::printf(word_bits == 32 ? "t = %2d: %.8x %.8x %.8x %.8x"
-                                                          " %.8x %.8x %.8x %.8x\n" :
-                                                          "t = %2d: %.16lx %.16lx %.16lx %.16lx"
-                                                          " %.16lx %.16lx %.16lx %.16lx\n",
-                                        t, a, b, c, d, e, f, g, h);
-#endif
                         }
                     }
 
@@ -203,13 +190,6 @@ namespace nil {
 
                 inline static block_type decrypt_block(const key_schedule_type &schedule,
                                                        const block_type &ciphertext) {
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                    for (unsigned t = 0; t < block_words; ++t) {
-                        std::printf(word_bits == 32 ? "H[%d] = %.8x\n" : "H[%d] = %.16lx\n", t, ciphertext[t]);
-                    }
-#endif
-
                     // Initialize working variables with block
                     word_type a = ciphertext[0], b = ciphertext[1], c = ciphertext[2], d = ciphertext[3],
                               e = ciphertext[4], f = ciphertext[5], g = ciphertext[6], h = ciphertext[7];
@@ -228,14 +208,6 @@ namespace nil {
                         g = h;
                         h = T1 - policy_type::Sigma_1(e) - policy_type::Ch(e, f, g) - policy_type::constants[t] -
                             schedule[t];
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        std::printf(word_bits == 32 ? "t = %2d: %.8x %.8x %.8x %.8x"
-                                                      " %.8x %.8x %.8x %.8x\n" :
-                                                      "t = %2d: %.16lx %.16lx %.16lx %.16lx"
-                                                      " %.16lx %.16lx %.16lx %.16lx\n",
-                                    t, a, b, c, d, e, f, g, h);
-#endif
                     }
                     return {{a, b, c, d, e, f, g, h}};
                 }

@@ -1,14 +1,31 @@
 //---------------------------------------------------------------------------//
 // Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
 //
-// Distributed under the Boost Software License, Version 1.0
-// See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_STREAM_ENDIAN_HPP
 #define CRYPTO3_STREAM_ENDIAN_HPP
 
+#include <boost/predef/other/endian.h>
 #include <boost/static_assert.hpp>
 
 #include <climits>
@@ -18,6 +35,7 @@ namespace nil {
         namespace stream_endian {
             // General versions; There should be no need to use these directly
 
+            // TODO: int -> std::size_t
             template<int UnitBits>
             struct big_unit_big_bit { };
             template<int UnitBits>
@@ -48,6 +66,19 @@ namespace nil {
             typedef little_unit_big_bit<8> little_octet_big_bit;
 
             typedef host_unit<CHAR_BIT> host_byte;
+
+            using host_endian =
+                #ifdef BOOST_ENDIAN_BIG_BYTE_AVAILABLE
+                    stream_endian::big_octet_big_bit;
+                #elif defined(BOOST_ENDIAN_LITTLE_BYTE_AVAILABLE)
+                    stream_endian::little_octet_big_bit;
+                #elif defined(BOOST_ENDIAN_BIG_WORD_AVAILABLE)
+                    stream_endian::big_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>;
+                #elif defined(BOOST_ENDIAN_LITTLE_WORD_AVAILABLE)
+                    stream_endian::little_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>;
+                #else
+                    #error "Unknown endianness"
+                #endif
 
         }    // namespace stream_endian
     }        // namespace crypto3

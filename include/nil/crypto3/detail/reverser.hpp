@@ -3,24 +3,40 @@
 // Copyright (c) 2020 Alexander Sokolov <asokolov@nil.foundation>
 // Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
 //
-// Distributed under the Boost Software License, Version 1.0
-// See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_DETAIL_REVERSER_HPP
 #define CRYPTO3_DETAIL_REVERSER_HPP
 
+#include <climits>
+#include <type_traits>
+
 #include <boost/integer.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/endian/conversion.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_same.hpp>
 
 #include <nil/crypto3/detail/unbounded_shift.hpp>
 #include <nil/crypto3/detail/stream_endian.hpp>
-
-#include <climits>
+#include <nil/crypto3/detail/predef.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -46,10 +62,12 @@ namespace nil {
              */
             inline void reverse_byte(byte_type &b) {
 
-#if (CRYPTO3_MP_WORD_BITS == 32)
+#if (BOOST_ARCH_CURRENT_WORD_BITS == 32)
                 b = unbounded_shr<16>(((b * 0x0802LU & 0x22110LU) | (b * 0x8020LU & 0x88440LU)) * 0x10101LU);
-#elif (CRYPTO3_MP_WORD_BITS == 64)
+#elif (BOOST_ARCH_CURRENT_WORD_BITS == 64)
                 b = (b * 0x0202020202ULL & 0x010884422010ULL) % 1023;
+#else
+#error "BOOST_ARCH_CURRENT_WORD_BITS not set"
 #endif
             }
 
@@ -138,7 +156,7 @@ namespace nil {
 
             /*!
              * @brief bit_in_unit_reverser transforms the sequence of bits in each unit of
-             * the input value into reversed sequence of bytes in each unit of the output value.
+             * the input value into reversed sequence of bits in each unit of the output value.
              * The function reverse is recursively invoked and the parameter k is used to track
              * the number of already processed input units. The recursion ends, when all input
              * units have been processed, i.e. when k == InputBits.
@@ -492,6 +510,38 @@ namespace nil {
                     return out;
                 }
             };
+
+            /*!
+             * @brief reverser reverses both the sequence of units in the given value and with within a unit, if InputEndianness
+             * and OutputEndianness endiannesses have different unit orders, and the sequence of bits in each unit of the given value,
+             * if InputEndianness and OutputEndianness endiannesses have different bit orders.
+             *
+             * @ingroup reverser
+             *
+             * @tparam InputEndianness
+             * @tparam OutputEndianness
+             * @tparam UnitBits
+             */
+            template<typename InputEndianness, typename OutputEndianness, int UnitBits>
+            class reverser {
+            private:
+                using unit_reverser_specified = unit_reverser<InputEndianness, OutputEndianness, UnitBits>;
+                using bit_reverser_specified = bit_reverser<InputEndianness, OutputEndianness, UnitBits>;
+            public:
+                template<typename ValueType, int ValueBits = sizeof(ValueType) * CHAR_BIT>
+                inline static void reverse(ValueType &val) {
+                    unit_reverser_specified::reverse(val);
+                    bit_reverser_specified::reverse(val);
+                }
+
+                template<typename ValueType, int ValueBits = sizeof(ValueType) * CHAR_BIT>
+                inline static ValueType reverse(ValueType const &val) {
+                    ValueType out = unit_reverser_specified::reverse(val);
+                    bit_reverser_specified::reverse(out);
+                    return out;
+                }
+            };
+
         }    // namespace detail
     }        // namespace crypto3
 }    // namespace nil

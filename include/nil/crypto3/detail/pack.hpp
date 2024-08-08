@@ -2,9 +2,25 @@
 // Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
 // Copyright (c) 2020 Alexander Sokolov <asokolov@nil.foundation>
 //
-// Distributed under the Boost Software License, Version 1.0
-// See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_DETAIL_PACK_HPP
@@ -15,9 +31,11 @@
 #include <nil/crypto3/detail/exploder.hpp>
 #include <nil/crypto3/detail/imploder.hpp>
 #include <nil/crypto3/detail/reverser.hpp>
+#include <nil/crypto3/detail/predef.hpp>
 
 #include <boost/static_assert.hpp>
 #include <boost/predef/other/endian.h>
+#include <boost/predef/architecture.h>
 
 #include <algorithm>
 #include <climits>
@@ -77,7 +95,7 @@ namespace nil {
             struct can_memcpy<stream_endian::host_unit<UnitBits>, InputBits, OutputBits, InT, OutT>
                 : host_can_memcpy<UnitBits, InputBits, OutputBits, InT, OutT> { };
 
-#ifdef CRYPTO3_TARGET_CPU_IS_LITTLE_ENDIAN
+#ifdef BOOST_ENDIAN_LITTLE_BYTE_AVAILABLE
             template<int UnitBits, int InputBits, int OutputBits, typename InT, typename OutT>
             struct can_memcpy<stream_endian::little_unit_big_bit<UnitBits>, InputBits, OutputBits, InT, OutT>
                 : host_can_memcpy<UnitBits, InputBits, OutputBits, InT, OutT> { };
@@ -86,7 +104,7 @@ namespace nil {
             struct can_memcpy<stream_endian::little_unit_little_bit<UnitBits>, InputBits, OutputBits, InT, OutT>
                 : host_can_memcpy<UnitBits, InputBits, OutputBits, InT, OutT> { };
 
-#elif defined(CRYPTO3_TARGET_CPU_IS_BIG_ENDIAN)
+#elif defined(BOOST_ENDIAN_BIG_BYTE_AVAILABLE)
             template<int UnitBits, int InputBits, int OutputBits, typename InT, typename OutT>
             struct can_memcpy<stream_endian::big_unit_big_bit<UnitBits>, ValueBits, InT, OutT>
                 : host_can_memcpy<UnitBits, InputBits, OutputBits, InT, OutT> { };
@@ -340,7 +358,9 @@ namespace nil {
 
                 BOOST_STATIC_ASSERT(!(OutputValueBits % InputValueBits));
 
-                typedef detail::imploder<InputEndianness, OutputEndianness, InputValueBits, OutputValueBits> imploder;
+                typedef nil::crypto3::detail::imploder<InputEndianness, OutputEndianness, InputValueBits,
+                                                       OutputValueBits>
+                    imploder;
 
                 template<typename InputIterator, typename OutputIterator>
                 inline static void pack_n(InputIterator in, std::size_t in_n, OutputIterator out) {
@@ -386,7 +406,9 @@ namespace nil {
 
                 BOOST_STATIC_ASSERT(!(InputValueBits % OutputValueBits));
 
-                typedef detail::exploder<InputEndianness, OutputEndianness, InputValueBits, OutputValueBits> exploder;
+                typedef nil::crypto3::detail::exploder<InputEndianness, OutputEndianness, InputValueBits,
+                                                       OutputValueBits>
+                    exploder;
 
                 template<typename InputIterator, typename OutputIterator>
                 inline static void pack_n(InputIterator in, std::size_t in_n, OutputIterator out) {
@@ -573,11 +595,11 @@ namespace nil {
                                InputType, OutputType>
                     packer_type;
 #elif defined(BOOST_ENDIAN_BIG_WORD_AVAILABLE)
-                typedef packer<stream_endian::big_unit_big_bit<CRYPTO3_MP_WORD_BITS>, OutputEndianness, InputValueBits,
-                               OutputValueBits, InputType, OutputType>
+                typedef packer<stream_endian::big_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>, OutputEndianness,
+                               InputValueBits, OutputValueBits, InputType, OutputType>
                     packer_type;
 #elif defined(BOOST_ENDIAN_LITTLE_WORD_AVAILABLE)
-                typedef packer<stream_endian::little_unit_big_bit<CRYPTO3_MP_WORD_BITS>, OutputEndianness,
+                typedef packer<stream_endian::little_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>, OutputEndianness,
                                InputValueBits, OutputValueBits, InputType, OutputType>
                     packer_type;
 #else
@@ -621,11 +643,11 @@ namespace nil {
                                InputType, OutputType>
                     packer_type;
 #elif defined(BOOST_ENDIAN_BIG_WORD_AVAILABLE)
-                typedef packer<InputEndianness, stream_endian::big_unit_big_bit<CRYPTO3_MP_WORD_BITS>, InputValueBits,
-                               OutputValueBits, InputType, OutputType>
+                typedef packer<InputEndianness, stream_endian::big_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>,
+                               InputValueBits, OutputValueBits, InputType, OutputType>
                     packer_type;
 #elif defined(BOOST_ENDIAN_LITTLE_WORD_AVAILABLE)
-                typedef packer<InputEndianness, stream_endian::little_unit_big_bit<CRYPTO3_MP_WORD_BITS>,
+                typedef packer<InputEndianness, stream_endian::little_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>,
                                InputValueBits, OutputValueBits, InputType, OutputType>
                     packer_type;
 #else
@@ -633,6 +655,102 @@ namespace nil {
 #endif
 
                 packer_type::pack(first, last, out);
+            }
+
+            /*!
+             * @brief Packs elements from range [first, last) represented in machine-dependent endianness
+             * into elements starting from out represented in OutputEndianness endianness.
+             *
+             * @ingroup pack
+             *
+             * @tparam OutputEndianness
+             * @tparam InputValueBits
+             * @tparam OutputValueBits
+             * @tparam InputIterator
+             * @tparam OutputIterator
+             *
+             * @param first
+             * @param last
+             * @param out
+             *
+             * @return
+             */
+            template<typename OutputEndianness, std::size_t InputValueBits, std::size_t OutputValueBits,
+                     typename InputRange, typename OutputIterator>
+            inline void pack_to(const InputRange &r, OutputIterator out) {
+
+                typedef typename std::iterator_traits<typename InputRange::iterator>::value_type InputType;
+                typedef typename std::iterator_traits<OutputIterator>::value_type OutputType;
+
+#ifdef BOOST_ENDIAN_BIG_BYTE_AVAILABLE
+                typedef packer<stream_endian::big_octet_big_bit, OutputEndianness, InputValueBits, OutputValueBits,
+                               InputType, OutputType>
+                    packer_type;
+#elif defined(BOOST_ENDIAN_LITTLE_BYTE_AVAILABLE)
+                typedef packer<stream_endian::little_octet_big_bit, OutputEndianness, InputValueBits, OutputValueBits,
+                               InputType, OutputType>
+                    packer_type;
+#elif defined(BOOST_ENDIAN_BIG_WORD_AVAILABLE)
+                typedef packer<stream_endian::big_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>, OutputEndianness,
+                               InputValueBits, OutputValueBits, InputType, OutputType>
+                    packer_type;
+#elif defined(BOOST_ENDIAN_LITTLE_WORD_AVAILABLE)
+                typedef packer<stream_endian::little_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>, OutputEndianness,
+                               InputValueBits, OutputValueBits, InputType, OutputType>
+                    packer_type;
+#else
+#error "Unknown endianness"
+#endif
+
+                packer_type::pack(std::begin(r), std::end(r), out);
+            }
+
+            /*!
+             * @brief Packs elements from range [first, last) represented in InputEndianness endianness
+             * into elements starting from out represented in machine-dependent endianness.
+             *
+             * @ingroup pack
+             *
+             * @tparam InputEndianness
+             * @tparam InputValueBits
+             * @tparam OutputValueBits
+             * @tparam InputIterator
+             * @tparam OutputIterator
+             *
+             * @param first
+             * @param last
+             * @param out
+             *
+             * @return
+             */
+            template<typename InputEndianness, std::size_t InputValueBits, std::size_t OutputValueBits,
+                     typename InputRange, typename OutputIterator>
+            inline void pack_from(const InputRange &r, OutputIterator out) {
+
+                typedef typename std::iterator_traits<typename InputRange::iterator>::value_type InputType;
+                typedef typename std::iterator_traits<OutputIterator>::value_type OutputType;
+
+#ifdef BOOST_ENDIAN_BIG_BYTE_AVAILABLE
+                typedef packer<InputEndianness, stream_endian::big_octet_big_bit, InputValueBits, OutputValueBits,
+                               InputType, OutputType>
+                    packer_type;
+#elif defined(BOOST_ENDIAN_LITTLE_BYTE_AVAILABLE)
+                typedef packer<InputEndianness, stream_endian::little_octet_big_bit, InputValueBits, OutputValueBits,
+                               InputType, OutputType>
+                    packer_type;
+#elif defined(BOOST_ENDIAN_BIG_WORD_AVAILABLE)
+                typedef packer<InputEndianness, stream_endian::big_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>,
+                               InputValueBits, OutputValueBits, InputType, OutputType>
+                    packer_type;
+#elif defined(BOOST_ENDIAN_LITTLE_WORD_AVAILABLE)
+                typedef packer<InputEndianness, stream_endian::little_unit_big_bit<BOOST_ARCH_CURRENT_WORD_BITS>,
+                               InputValueBits, OutputValueBits, InputType, OutputType>
+                    packer_type;
+#else
+#error "Unknown endianness"
+#endif
+
+                packer_type::pack(std::begin(r), std::end(r), out);
             }
 
             /*!
@@ -743,8 +861,8 @@ namespace nil {
              */
             template<typename InputEndianness, typename OutputEndianness, std::size_t InputValueBits,
                      std::size_t OutputValueBits, typename InputIterator, typename InCatT, typename OutputIterator,
-                     typename = typename std::enable_if<detail::is_iterator<InputIterator>::value>::type,
-                     typename = typename std::enable_if<detail::is_iterator<OutputIterator>::value>::type>
+                     typename = typename std::enable_if<nil::crypto3::detail::is_iterator<InputIterator>::value>::type,
+                     typename = typename std::enable_if<nil::crypto3::detail::is_iterator<OutputIterator>::value>::type>
             inline void pack(InputIterator first, InputIterator last, InCatT, OutputIterator out) {
                 typedef typename std::iterator_traits<InputIterator>::value_type InputType;
                 typedef typename std::iterator_traits<OutputIterator>::value_type OutputType;
@@ -775,7 +893,7 @@ namespace nil {
              */
             template<typename InputEndianness, typename OutputEndianness, std::size_t InputValueBits,
                      std::size_t OutputValueBits, typename InputIterator, typename OutputIterator,
-                     typename = typename std::enable_if<detail::is_iterator<OutputIterator>::value>::type>
+                     typename = typename std::enable_if<nil::crypto3::detail::is_iterator<OutputIterator>::value>::type>
             inline void pack(InputIterator first, InputIterator last, OutputIterator out) {
                 typedef typename std::iterator_traits<InputIterator>::iterator_category in_cat;
 
