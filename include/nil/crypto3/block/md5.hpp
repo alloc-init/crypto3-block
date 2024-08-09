@@ -2,9 +2,25 @@
 // Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
 // Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
 //
-// Distributed under the Boost Software License, Version 1.0
-// See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_BLOCK_MD5_HPP
@@ -24,7 +40,7 @@ namespace nil {
         namespace block {
             /*!
              * @brief MD5 block cipher. Stands as a foundation for
-             * @ref nil::crypto3::hash::md5 "MD5" hash.
+             * @ref nil::crypto3::hashes::md5 "MD5" hashes.
              *
              * @ingroup block
              *
@@ -69,11 +85,6 @@ namespace nil {
                 typedef typename stream_endian::little_octet_big_bit endian_type;
                 
                 md5(const key_type &k) : key(k) {
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                    for (unsigned t = 0; t < key_words; ++t) {
-                        std::printf("X[%2d] = %.8x\n", t, key[t]);
-                    }
-#endif
                 }
 
                 virtual ~md5() {
@@ -92,13 +103,6 @@ namespace nil {
                 key_type key;
 
                 static inline block_type encrypt_block(key_type const &key, block_type const &plaintext) {
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                    for (unsigned t = 0; t < block_words; ++t) {
-                        std::printf("%c%c = %.8x\n", 'A' + t, 'A' + t, plaintext[t]);
-                    }
-#endif
-
                     // Initialize working variables with block
                     word_type a = plaintext[0], b = plaintext[1], c = plaintext[2], d = plaintext[3];
 
@@ -114,53 +118,30 @@ namespace nil {
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(d, a, b, c, ff, t + 1, 12, t + 2)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(c, d, a, b, ff, t + 2, 17, t + 3)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(b, c, d, a, ff, t + 3, 22, t + 4)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 1: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
                     for (unsigned t = policy_type::rounds / 4; t < policy_type::rounds / 2; t += 4) {
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(a, b, c, d, gg, t + 0, 5, t + 1)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(d, a, b, c, gg, t + 1, 9, t + 2)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(c, d, a, b, gg, t + 2, 14, t + 3)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(b, c, d, a, gg, t + 3, 20, t + 4)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 2: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
                     for (unsigned t = policy_type::rounds / 2; t < 3 * policy_type::rounds / 4; t += 4) {
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(a, b, c, d, hh, t + 0, 4, t + 1)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(d, a, b, c, hh, t + 1, 11, t + 2)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(c, d, a, b, hh, t + 2, 16, t + 3)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(b, c, d, a, hh, t + 3, 23, t + 4)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 3: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
                     for (unsigned t = 3 * policy_type::rounds / 4; t < policy_type::rounds; t += 4) {
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(a, b, c, d, ii, t + 0, 6, t + 1)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(d, a, b, c, ii, t + 1, 10, t + 2)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(c, d, a, b, ii, t + 2, 15, t + 3)
                         CRYPTO3_BLOCK_MD5_ENCRYPT_STEP(b, c, d, a, ii, t + 3, 21, t + 4)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 4: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
 
                     return {{a, b, c, d}};
                 }
 
                 static inline block_type decrypt_block(key_type const &key, const block_type &ciphertext) {
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                    for (unsigned t = 0; t < block_words; ++t) {
-                        std::printf("%c = %.8x\n", 'A' + t, ciphertext[t]);
-                    }
-#endif
-
                     // Initialize working variables with block
                     word_type a = ciphertext[0], b = ciphertext[1], c = ciphertext[2], d = ciphertext[3];
 
@@ -175,40 +156,24 @@ namespace nil {
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(c, d, a, b, ii, t + 2, 15, t + 3)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(d, a, b, c, ii, t + 1, 10, t + 2)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(a, b, c, d, ii, t + 0, 6, t + 1)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 4: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
                     for (unsigned t = 3 * policy_type::rounds / 4; t -= 4, t >= policy_type::rounds / 2;) {
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(b, c, d, a, hh, t + 3, 23, t + 4)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(c, d, a, b, hh, t + 2, 16, t + 3)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(d, a, b, c, hh, t + 1, 11, t + 2)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(a, b, c, d, hh, t + 0, 4, t + 1)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 3: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
                     for (unsigned t = policy_type::rounds / 2; t -= 4, t >= policy_type::rounds / 4;) {
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(b, c, d, a, gg, t + 3, 20, t + 4)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(c, d, a, b, gg, t + 2, 14, t + 3)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(d, a, b, c, gg, t + 1, 9, t + 2)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(a, b, c, d, gg, t + 0, 5, t + 1)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 2: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
                     for (unsigned t = policy_type::rounds / 4; t -= 4, t < policy_type::rounds / 4;) {
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(b, c, d, a, ff, t + 3, 22, t + 4)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(c, d, a, b, ff, t + 2, 17, t + 3)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(d, a, b, c, ff, t + 1, 12, t + 2)
                         CRYPTO3_BLOCK_MD5_DECRYPT_STEP(a, b, c, d, ff, t + 0, 7, t + 1)
-
-#ifdef CRYPTO3_BLOCK_SHOW_PROGRESS
-                        printf("Round 1: %.8x %.8x %.8x %.8x\n", a, b, c, d);
-#endif
                     }
 
                     return {{a, b, c, d}};

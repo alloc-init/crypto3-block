@@ -1,15 +1,31 @@
 //---------------------------------------------------------------------------//
 // Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
 //
-// Distributed under the Boost Software License, Version 1.0
-// See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_RIJNDAEL_POWER8_IMPL_HPP
 #define CRYPTO3_RIJNDAEL_POWER8_IMPL_HPP
 
-#include <nil/crypto3/block/detail/rijndael_impl.hpp>
+#include <nil/crypto3/block/detail/rijndael/rijndael_impl.hpp>
 
 #include <cstddef>
 #include <altivec.h>
@@ -52,7 +68,7 @@ namespace nil {
                     vec_vsx_st(Reverse8x16((__vector unsigned char)src), 0, dest);
                 }
 
-                template<std::size_t KeyBitsImpl, std::size_t BlockBitsImpl, typename PolicyType>
+                template<std::size_t KeyBitsImpl, std::size_t BlockBitsImpl>
                 class basic_rijndael_power8_impl {
                     BOOST_STATIC_ASSERT(BlockBitsImpl == 128);
 
@@ -71,22 +87,23 @@ namespace nil {
                     }
                 };
 
-                template<std::size_t KeyBitsImpl, std::size_t BlockBitsImpl, typename PolicyType>
-                class rijndael_power8_impl : public basic_rijndael_power8_impl<KeyBitsImpl, BlockBitsImpl, PolicyType> {
+                template<std::size_t KeyBitsImpl, std::size_t BlockBitsImpl>
+                class rijndael_power8_impl : public basic_rijndael_power8_impl<KeyBitsImpl, BlockBitsImpl> {
                     BOOST_STATIC_ASSERT(BlockBitsImpl == 128);
                 };
 
-                template<typename PolicyType>
-                class rijndael_power8_impl<128, 128, PolicyType>
-                    : public basic_rijndael_power8_impl<128, 128, PolicyType> {
+                template<>
+                class rijndael_power8_impl<128, 128>
+                    : public basic_rijndael_power8_impl<128, 128> {
                 protected:
-                    typedef PolicyType policy_type;
+                    typedef rijndael_policy<128, 128> policy_type;
+
                     typedef typename policy_type::block_type block_type;
                     typedef typename policy_type::key_type key_type;
                     typedef typename policy_type::key_schedule_type key_schedule_type;
 
-                    BOOST_STATIC_ASSERT(PolicyType::key_bits == 128);
-                    BOOST_STATIC_ASSERT(PolicyType::block_bits == 128);
+                    BOOST_STATIC_ASSERT(policy_type::key_bits == 128);
+                    BOOST_STATIC_ASSERT(policy_type::block_bits == 128);
 
                 public:
                     static block_type encrypt_block(const block_type &plaintext,
@@ -160,17 +177,18 @@ namespace nil {
                     }
                 };
 
-                template<typename PolicyType>
-                class rijndael_power8_impl<192, 128, PolicyType>
-                    : public basic_rijndael_power8_impl<192, 128, PolicyType> {
+                template<>
+                class rijndael_power8_impl<192, 128>
+                    : public basic_rijndael_power8_impl<192, 128> {
                 protected:
-                    typedef PolicyType policy_type;
+                    typedef rijndael_policy<192, 128> policy_type;
+
                     typedef typename policy_type::block_type block_type;
                     typedef typename policy_type::key_type key_type;
                     typedef typename policy_type::key_schedule_type key_schedule_type;
 
-                    BOOST_STATIC_ASSERT(PolicyType::key_bits == 192);
-                    BOOST_STATIC_ASSERT(PolicyType::block_bits == 128);
+                    BOOST_STATIC_ASSERT(policy_type::key_bits == 192);
+                    BOOST_STATIC_ASSERT(policy_type::block_bits == 128);
 
                 public:
                     static block_type encrypt_block(const block_type &plaintext,
@@ -250,17 +268,18 @@ namespace nil {
                     }
                 };
 
-                template<typename PolicyType>
-                class rijndael_power8_impl<256, 128, PolicyType>
-                    : public basic_rijndael_power8_impl<256, 128, PolicyType> {
+                template<>
+                class rijndael_power8_impl<256, 128>
+                    : public basic_rijndael_power8_impl<256, 128> {
                 protected:
-                    typedef PolicyType policy_type;
+                    typedef rijndael_policy<256, 128> policy_type;
+
                     typedef typename policy_type::block_type block_type;
                     typedef typename policy_type::key_type key_type;
                     typedef typename policy_type::key_schedule_type key_schedule_type;
 
-                    BOOST_STATIC_ASSERT(PolicyType::key_bits == 256);
-                    BOOST_STATIC_ASSERT(PolicyType::block_bits == 128);
+                    BOOST_STATIC_ASSERT(policy_type::key_bits == 256);
+                    BOOST_STATIC_ASSERT(policy_type::block_bits == 128);
 
                 public:
                     static block_type encrypt_block(const block_type &plaintext,

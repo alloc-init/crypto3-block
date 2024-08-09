@@ -2,9 +2,25 @@
 // Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
 // Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
 //
-// Distributed under the Boost Software License, Version 1.0
-// See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt
+// MIT License
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_BLOCK_RIJNDAEL_HPP
@@ -22,11 +38,12 @@
 
 #include <nil/crypto3/block/detail/rijndael/rijndael_ni_impl.hpp>
 
-#elif defined(CRYPTO3_HAS_RIJNDAEL_SSSE3)
+#elif defined(CRYPTO3_HAS_RIJNDAEL_SSSE3) || \
+    ((BOOST_ARCH_X86_32 || BOOST_ARCH_X86_64) && BOOST_HW_SIMD_X86 >= BOOST_HW_SIMD_X86_SSSE3_VERSION)
 
 #include <nil/crypto3/block/detail/rijndael/rijndael_ssse3_impl.hpp>
 
-#elif defined(CRYPTO3_HAS_RIJNDAEL_ARMV8)
+#elif defined(CRYPTO3_HAS_RIJNDAEL_ARMV8) || BOOST_ARCH_ARM
 
 #include <nil/crypto3/block/detail/rijndael/rijndael_armv8_impl.hpp>
 
@@ -106,18 +123,19 @@ namespace nil {
 
                 typedef
                     typename std::conditional<BlockBits == 128 && (KeyBits == 128 || KeyBits == 192 || KeyBits == 256),
-#if defined(CRYPTO3_HAS_RIJNDAEL_NI)
-                                              detail::rijndael_ni_impl<KeyBits, BlockBits, policy_type>,
-#elif defined(CRYPTO3_HAS_RIJNDAEL_SSSE3)
-                                              detail::rijndael_ssse3_impl<KeyBits, BlockBits, policy_type>,
-#elif defined(CRYPTO3_HAS_RIJNDAEL_ARMV8)
-                                              detail::rijndael_armv8_impl<KeyBits, BlockBits, policy_type>,
-#elif defined(CRYPTO3_HAS_RIJNDAEL_POWER8)
-                                              detail::rijndael_power8_impl<KeyBits, BlockBits, policy_type>,
+#if defined(CRYPTO3_HAS_RIJNDAEL_NI) && (BOOST_ARCH_X86_32 || BOOST_ARCH_X86_64)
+                                              detail::rijndael_ni_impl<KeyBits, BlockBits>,
+#elif defined(CRYPTO3_HAS_RIJNDAEL_SSSE3) && \
+    ((BOOST_ARCH_X86_32 || BOOST_ARCH_X86_64) && BOOST_HW_SIMD_X86 >= BOOST_HW_SIMD_X86_SSSE3_VERSION)
+                                              detail::rijndael_ssse3_impl<KeyBits, BlockBits>,
+#elif defined(CRYPTO3_HAS_RIJNDAEL_ARMV8) || BOOST_ARCH_ARM >= BOOST_VERSION_NUMBER(8, 0, 0)
+                                              detail::rijndael_armv8_impl<KeyBits, BlockBits>,
+#elif defined(CRYPTO3_HAS_RIJNDAEL_POWER8) || (BOOST_ARCH_PPC >= BOOST_VERSION_NUMBER(8, 0, 0) || BOOST_ARCH_PPC_64)
+                                              detail::rijndael_power8_impl<KeyBits, BlockBits>,
 #else
-                                              detail::rijndael_impl<KeyBits, BlockBits, policy_type>,
+                                              detail::rijndael_impl<KeyBits, BlockBits>,
 #endif
-                                              detail::rijndael_impl<KeyBits, BlockBits, policy_type>>::type impl_type;
+                                              detail::rijndael_impl<KeyBits, BlockBits>>::type impl_type;
 
                 constexpr static const std::size_t key_schedule_words = policy_type::key_schedule_words;
                 constexpr static const std::size_t key_schedule_bytes = policy_type::key_schedule_bytes;
